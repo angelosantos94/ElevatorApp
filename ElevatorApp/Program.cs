@@ -6,7 +6,6 @@
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            Console.WriteLine("Elevator simulation started...");
             var system = new ElevatorSystem(4);
             system.Run();
         }

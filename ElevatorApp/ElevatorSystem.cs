@@ -1,6 +1,9 @@
 ﻿using ElevatorApp.Enums;
 using ElevatorApp.Models;
-
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 
 namespace ElevatorApp
 {
@@ -13,7 +16,8 @@ namespace ElevatorApp
             ConsoleColor.Cyan,
             ConsoleColor.Green,
             ConsoleColor.Yellow,
-            ConsoleColor.Magenta
+            ConsoleColor.Magenta,
+            ConsoleColor.Blue
         };
 
         private readonly Dictionary<int, int> _waitingPassengers = new();
@@ -36,7 +40,19 @@ namespace ElevatorApp
                     {
                         int count = _waitingPassengers[floor];
                         _waitingPassengers[floor] = 0;
-                        return count;
+
+                        var destinations = new List<int>();
+                        for (int i = 0; i < count; i++)
+                        {
+                            int dest;
+                            do
+                            {
+                                dest = _random.Next(1, 11);
+                            } while (dest == floor);
+                            destinations.Add(dest);
+                        }
+
+                        return destinations;
                     },
                     LogMessage = Log
                 };
@@ -55,6 +71,9 @@ namespace ElevatorApp
         {
             while (true)
             {
+                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
+                    break;
+
                 GenerateRandomCall();
 
                 foreach (var (elevator, logic) in _elevators)
@@ -63,9 +82,12 @@ namespace ElevatorApp
                 }
 
                 DrawUI();
-
                 Thread.Sleep(10000);
+                Console.Clear();
             }
+
+            Console.WriteLine("Simulation ended. Press any key to close...");
+            Console.ReadKey();
         }
 
         private void GenerateRandomCall()
@@ -92,10 +114,7 @@ namespace ElevatorApp
 
         private void DrawUI()
         {
-            Console.Clear();
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
             Console.WriteLine("ELEVATOR SIMULATION\n");
-
             const int boxWidth = 7;
 
             for (int floor = 10; floor >= 1; floor--)
@@ -113,7 +132,6 @@ namespace ElevatorApp
                     else
                     {
                         Console.Write("       ");
-                        Console.Write(" ");
                     }
                 }
                 Console.WriteLine();
@@ -135,7 +153,6 @@ namespace ElevatorApp
                     else
                     {
                         Console.Write("       ");
-                        Console.Write("");
                     }
                 }
                 Console.Write($"Waiting: {_waitingPassengers[floor]}");
@@ -154,7 +171,6 @@ namespace ElevatorApp
                     else
                     {
                         Console.Write("       ");
-                        Console.Write("");
                     }
                 }
                 Console.WriteLine();
@@ -180,7 +196,6 @@ namespace ElevatorApp
             {
                 Console.WriteLine(msg);
             }
-
         }
     }
 }

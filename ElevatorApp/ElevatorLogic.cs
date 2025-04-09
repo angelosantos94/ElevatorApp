@@ -13,7 +13,7 @@ namespace ElevatorApp
         private readonly Elevator _elevator;
         private readonly Random _random = new();
 
-        public Func<int, int>? PickupCallback { get; set; }
+        public Func<int, List<int>>? PickupCallback { get; set; }
         public Action<string>? LogMessage { get; set; }
 
         public ElevatorLogic(Elevator elevator)
@@ -33,7 +33,7 @@ namespace ElevatorApp
 
         public void Step()
         {
-            if (!_elevator.IsBusy)
+            if (!_elevator.IsBusy && !_elevator.Destinations.Any())
             {
                 _elevator.CurrentDirection = Direction.Idle;
                 return;
@@ -55,20 +55,36 @@ namespace ElevatorApp
 
         private void HandleStop()
         {
-            LogMessage?.Invoke($"[Elevator {_elevator.Id}] Arrived at floor {_elevator.CurrentFloor}. Picking up passengers...");
+            LogMessage?.Invoke($"[Elevator {_elevator.Id}] Arrived at floor {_elevator.CurrentFloor}.");
+
+            // Drop off passengers
+            int dropOffCount = _elevator.GetPassengerCountForFloor(_elevator.CurrentFloor);
+            if (dropOffCount > 0)
+            {
+                LogMessage?.Invoke($"[Elevator {_elevator.Id}] {dropOffCount} passenger(s) disembark.");
+                _elevator.RemoveArrivedPassengers(_elevator.CurrentFloor);
+            }
 
             Thread.Sleep(1000); // simulate stop delay
 
-            int pickedUp = PickupCallback?.Invoke(_elevator.CurrentFloor) ?? _random.Next(1, 6);
-            _elevator.Passengers += pickedUp;
-            LogMessage?.Invoke($"[Elevator {_elevator.Id}] Picked up {pickedUp} passenger(s).");
-
-            _elevator.Destinations.Dequeue();
-
-            if (_elevator.Destinations.Count == 0)
+            // Pick up new passengers
+            var newDestinations = PickupCallback?.Invoke(_elevator.CurrentFloor);
+            if (newDestinations != null && newDestinations.Count > 0)
             {
-                LogMessage?.Invoke($"[Elevator {_elevator.Id}] Final stop. All passengers disembark.");
-                _elevator.Passengers = 0;
+                foreach (var dest in newDestinations)
+                {
+                    _elevator.AddPassenger(dest);
+                }
+
+                LogMessage?.Invoke($"[Elevator {_elevator.Id}] Picked up {newDestinations.Count} passenger(s).");
+            }
+
+            // Remove current floor from destination queue
+            if (_elevator.Destinations.Contains(_elevator.CurrentFloor))
+            {
+                var remaining = new Queue<int>(_elevator.Destinations.Where(d => d != _elevator.CurrentFloor));
+                while (_elevator.Destinations.Count > 0) _elevator.Destinations.Dequeue();
+                foreach (var d in remaining) _elevator.Destinations.Enqueue(d);
             }
 
             Thread.Sleep(1000); // simulate door close delay
@@ -87,19 +103,22 @@ namespace ElevatorApp
 
         private void UpdateDirection()
         {
-            if (!_elevator.IsBusy)
+            if (!_elevator.IsBusy && !_elevator.Destinations.Any())
             {
                 _elevator.CurrentDirection = Direction.Idle;
                 return;
             }
 
-            int target = _elevator.Destinations.Peek();
-            if (_elevator.CurrentFloor < target)
-                _elevator.CurrentDirection = Direction.Up;
-            else if (_elevator.CurrentFloor > target)
-                _elevator.CurrentDirection = Direction.Down;
-            else
-                _elevator.CurrentDirection = Direction.Idle;
+            if (_elevator.Destinations.Any())
+            {
+                int target = _elevator.Destinations.Peek();
+                if (_elevator.CurrentFloor < target)
+                    _elevator.CurrentDirection = Direction.Up;
+                else if (_elevator.CurrentFloor > target)
+                    _elevator.CurrentDirection = Direction.Down;
+                else
+                    _elevator.CurrentDirection = Direction.Idle;
+            }
         }
     }
 }
