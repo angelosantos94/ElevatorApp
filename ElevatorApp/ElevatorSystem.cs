@@ -69,10 +69,16 @@ namespace ElevatorApp
 
         public void Run()
         {
+            int consoleLines = Console.WindowHeight;
+
+            // Pre-buffer: draw once to reserve all screen space
+            Console.Clear();
+            for (int i = 0; i < consoleLines; i++)
+                Console.WriteLine();
+
             while (true)
             {
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape)
-                    break;
+                Console.SetCursorPosition(0, 0);
 
                 GenerateRandomCall();
 
@@ -82,12 +88,9 @@ namespace ElevatorApp
                 }
 
                 DrawUI();
-                Thread.Sleep(10000);
-                Console.Clear();
-            }
 
-            Console.WriteLine("Simulation ended. Press any key to close...");
-            Console.ReadKey();
+                Thread.Sleep(5000);
+            }
         }
 
         private void GenerateRandomCall()
