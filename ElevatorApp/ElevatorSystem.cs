@@ -82,7 +82,7 @@ namespace ElevatorApp
                 }
 
                 DrawUI();
-                Thread.Sleep(5000);
+                Thread.Sleep(10000);
                 Console.Clear();
                 Console.WriteLine("\x1b[3J");
             }
