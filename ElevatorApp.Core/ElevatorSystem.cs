@@ -1,11 +1,11 @@
-﻿using ElevatorApp.Enums;
-using ElevatorApp.Models;
+﻿using ElevatorApp.Core.Enums;
+using ElevatorApp.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-namespace ElevatorApp
+namespace ElevatorApp.Core
 {
     public class ElevatorSystem
     {

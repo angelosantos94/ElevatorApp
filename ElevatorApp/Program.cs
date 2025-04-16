@@ -1,4 +1,6 @@
-﻿namespace ElevatorApp
+﻿using ElevatorApp.Core;
+
+namespace ElevatorApp
 {
     public class Program
     {
